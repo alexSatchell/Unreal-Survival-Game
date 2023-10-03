@@ -67,7 +67,7 @@ void AFirst_Person_Player::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	const auto PlayerInputComp = Cast<UEnhancedInputComponent>(PlayerInputComponent);
 
 	PlayerInputComp->BindAction(MovementAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleMovement);
-	PlayerInputComp->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleJump);
+	PlayerInputComp->BindAction(JumpAction, ETriggerEvent::Started, this, &AFirst_Person_Player::HandleJump);
 	PlayerInputComp->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleLook);
 }
 
@@ -105,7 +105,13 @@ void AFirst_Person_Player::HandleLook(const FInputActionInstance& Instance)
 }
 
 
-void AFirst_Person_Player::HandleJump(const FInputActionValue& value) {}
+void AFirst_Person_Player::HandleJump(const FInputActionValue& value)
+{
+	if (!AFirst_Person_Player::bWasJumping)
+	{
+		AFirst_Person_Player::Jump();
+	}
+}
 
 
 

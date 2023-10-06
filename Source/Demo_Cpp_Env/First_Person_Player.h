@@ -34,7 +34,7 @@ class DEMO_CPP_ENV_API AFirst_Person_Player : public ACharacter
 	#pragma region INPUT
 	
 	// INPUT MAPPING CONTEXT
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions", meta=(AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Mapping Context", meta=(AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions", meta=(AllowPrivateAccess = "true"))
@@ -52,6 +52,9 @@ class DEMO_CPP_ENV_API AFirst_Person_Player : public ACharacter
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions", meta=(AllowPrivateAccess = "true"))
 	UInputAction* FireAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions", meta=(AllowPrivateAccess))
+	UInputAction* AimAction;
 	
 	#pragma endregion
 	
@@ -71,6 +74,8 @@ protected:
 	void HandleJump(const FInputActionValue& value);
 
 	void HandleFire(const FInputActionValue& value);
+
+	void HandleAim(const FInputActionValue& value);
 
 	
 public:	

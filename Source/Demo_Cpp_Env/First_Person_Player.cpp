@@ -77,7 +77,9 @@ void AFirst_Person_Player::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	{
 		EnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleMovement);
     	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFirst_Person_Player::HandleJump);
-    	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleLook);	
+    	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleLook);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AFirst_Person_Player::HandleFire);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AFirst_Person_Player::HandleAim);
 	}
 }
 
@@ -152,6 +154,40 @@ void AFirst_Person_Player::HandleLook(const FInputActionInstance& Instance)
 		}
 	}
 }
+
+void AFirst_Person_Player::HandleAim(const FInputActionValue& value)
+{
+	/*
+		 * NOTES Handle Aim
+		 * ----------------
+		 * Player Rotation
+		 * Get dot product of player and camera
+		 * if (character is not facing camera i.e dot product != 1)
+		 * {
+		 *		Rotate character to face camera
+		 *		perform ads action 
+		 * }
+	 */
+	UE_LOG(LogTemp, Warning, TEXT("Aim"));
+}
+
+void AFirst_Person_Player::HandleFire(const FInputActionValue& value)
+{
+	/*
+		 * NOTES Handle Shoot 
+		 * ------------------
+		 *	Player Rotation
+		 *	Get dot product of player and camera
+		 *	If (character is not facing camera i.e dot product != 1)
+		 *	{
+		 *		Rotate character to face camera
+		 *		perform shoot action
+		 *	}
+	 */
+	
+	UE_LOG(LogTemp, Warning, TEXT("Shoot"));
+}
+
 
 
 void AFirst_Person_Player::HandleJump(const FInputActionValue& value)

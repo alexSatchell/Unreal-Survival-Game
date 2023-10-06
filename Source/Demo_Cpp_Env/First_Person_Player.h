@@ -53,8 +53,11 @@ class DEMO_CPP_ENV_API AFirst_Person_Player : public ACharacter
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions", meta=(AllowPrivateAccess = "true"))
 	UInputAction* FireAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions", meta=(AllowPrivateAccess))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions", meta=(AllowPrivateAccess = "true"))
 	UInputAction* AimAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions", meta=(AllowPrivateAccess = "true"))
+	UInputAction* SprintAction;
 	
 	#pragma endregion
 	
@@ -77,7 +80,8 @@ protected:
 
 	void HandleAim(const FInputActionValue& value);
 
-	
+	void HandleSprint(const FInputActionValue& value);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

@@ -78,14 +78,14 @@ void AFirst_Person_Player::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 		EnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleMovement);
     	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFirst_Person_Player::HandleJump);
     	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleLook);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AFirst_Person_Player::HandleFire);
-		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AFirst_Person_Player::HandleAim);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleFire);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleAim);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleSprint);
 	}
 }
 
-
-
 #pragma region INPUT ACTION CALLBACKS
+
 void AFirst_Person_Player::HandleMovement(const FInputActionInstance& Instance)
 {
 	/*
@@ -155,6 +155,11 @@ void AFirst_Person_Player::HandleLook(const FInputActionInstance& Instance)
 	}
 }
 
+void AFirst_Person_Player::HandleSprint(const FInputActionValue& value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Sprint"));
+}
+
 void AFirst_Person_Player::HandleAim(const FInputActionValue& value)
 {
 	/*
@@ -164,7 +169,7 @@ void AFirst_Person_Player::HandleAim(const FInputActionValue& value)
 		 * Get dot product of player and camera
 		 * if (character is not facing camera i.e dot product != 1)
 		 * {
-		 *		Rotate character to face camera
+		 *		SNAP-Rotate character to face same direction as camera
 		 *		perform ads action 
 		 * }
 	 */
@@ -180,15 +185,13 @@ void AFirst_Person_Player::HandleFire(const FInputActionValue& value)
 		 *	Get dot product of player and camera
 		 *	If (character is not facing camera i.e dot product != 1)
 		 *	{
-		 *		Rotate character to face camera
+		 *		SNAP-Rotate character to face same direction as camera
 		 *		perform shoot action
 		 *	}
 	 */
 	
 	UE_LOG(LogTemp, Warning, TEXT("Shoot"));
 }
-
-
 
 void AFirst_Person_Player::HandleJump(const FInputActionValue& value)
 {
@@ -197,4 +200,5 @@ void AFirst_Person_Player::HandleJump(const FInputActionValue& value)
 		AFirst_Person_Player::Jump();
 	}
 }
+
 #pragma endregion 

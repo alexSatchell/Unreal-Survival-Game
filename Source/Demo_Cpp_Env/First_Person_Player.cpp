@@ -4,6 +4,7 @@
 #include "Components/InputComponent.h"
 #include "EnhancedInputComponent.h"
 #include "InputAction.h"
+#include "Components/ArrowComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Math/Vector2D.h"
 
@@ -11,7 +12,6 @@
 AFirst_Person_Player::AFirst_Person_Player()
 {
 	// PrimaryActorTick.bCanEverTick = true;
-
 	// Do not rotate when controller rotates. Only rotate camera. (Free Camera)
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
@@ -21,16 +21,10 @@ AFirst_Person_Player::AFirst_Person_Player()
 	GetCharacterMovement()->bOrientRotationToMovement = false; // Strafe motion. Player will not rotate
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 100.0f, 0.0f);
 
-	// set character base variables...
-	
-	// Visual representation mesh 
-	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
-	StaticMeshComp->SetupAttachment(RootComponent);
-
-	// Create camera spring arm
+	// Create & attach spring arm
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
-	SpringArmComp->SetupAttachment(StaticMeshComp);
-	SpringArmComp->TargetArmLength = 400.0f;
+	SpringArmComp->SetupAttachment(GetMesh());
+	SpringArmComp->TargetArmLength = 200.0f;
 	SpringArmComp->bEnableCameraLag = true;
 	SpringArmComp->CameraLagSpeed = 3.0f;
 	SpringArmComp->bUsePawnControlRotation = true; // Use input (Mouse.X) to rotate the camera
@@ -40,12 +34,17 @@ AFirst_Person_Player::AFirst_Person_Player()
      * Camera Needs to be aligned to center
      */
 	
-	// Create camera
+	// Create & attach camera
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	// Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false; // Play with this field
-		
+
+	CameraOriginLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Camera Origin"));
+	CameraOriginLocation->SetupAttachment(GetMesh());
+
+	CameraRightShoulderLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Camera Right Shoulder"));
+	CameraRightShoulderLocation->SetupAttachment(GetMesh());
+	
 	// Default control to this player
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
@@ -189,8 +188,37 @@ void AFirst_Person_Player::HandleFire(const FInputActionValue& value)
 		 *		perform shoot action
 		 *	}
 	 */
-	
-	UE_LOG(LogTemp, Warning, TEXT("Shoot"));
+
+	// Ray cast into the world
+	FVector StartLocation = GetMesh()->GetComponentLocation();
+	FRotator ViewRotation = GetMesh()->GetComponentRotation();
+	FVector EndLocation = StartLocation + (ViewRotation.Vector() * 1500.0f);
+
+	// Perform line trace
+	FHitResult HitResult;
+	FCollisionQueryParams CollisionParams;
+	CollisionParams.AddIgnoredActor(this);
+
+	if (bool bHit = GetWorld()->LineTraceSingleByChannel(
+		HitResult,
+		StartLocation,
+		EndLocation,
+		ECC_Visibility,
+		CollisionParams
+	))
+	{
+		DrawDebugLine(
+			GetWorld(),
+			StartLocation,
+			HitResult.ImpactPoint,
+			FColor::Orange,
+			false,
+			1,
+			0,
+			1
+		);
+		UE_LOG(LogTemp, Warning, TEXT("Shoot"));
+	}
 }
 
 void AFirst_Person_Player::HandleJump(const FInputActionValue& value)

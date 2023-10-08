@@ -71,11 +71,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Camera|Camera")
 	class UCameraComponent* CameraComp;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	class UArrowComponent* CameraOriginLocation;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	class UArrowComponent* CameraRightShoulderLocation;
+	// UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	// class UArrowComponent* CameraRightShoulderLocation;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	class UArrowComponent* CameraLeftShoulderLocation;

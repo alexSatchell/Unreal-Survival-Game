@@ -23,9 +23,9 @@ AFirst_Person_Player::AFirst_Person_Player()
 
 	// Create & attach spring arm
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
-	SpringArmComp->SetupAttachment(GetMesh());
-	SpringArmComp->TargetArmLength = 200.0f;
-	SpringArmComp->bEnableCameraLag = true;
+	SpringArmComp->SetupAttachment(GetRootComponent());
+	SpringArmComp->TargetArmLength = 150.0f;
+	SpringArmComp->bEnableCameraLag = false;
 	SpringArmComp->CameraLagSpeed = 3.0f;
 	SpringArmComp->bUsePawnControlRotation = true; // Use input (Mouse.X) to rotate the camera
 
@@ -39,11 +39,16 @@ AFirst_Person_Player::AFirst_Person_Player()
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false; // Play with this field
 
-	CameraOriginLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Camera Origin"));
-	CameraOriginLocation->SetupAttachment(GetMesh());
+	// CameraRightShoulderLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Camera Right Shoulder"));
+	// CameraRightShoulderLocation->SetupAttachment(GetMesh());
 
-	CameraRightShoulderLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Camera Right Shoulder"));
-	CameraRightShoulderLocation->SetupAttachment(GetMesh());
+	// Offset character to the left
+	FVector OriginalLocation = GetMesh()->GetRelativeLocation();
+	GetMesh()->SetRelativeLocation(FVector(0.0f, -200.0f, 0.0f)); // Adjust the values as needed
+	FVector NewLocation = GetMesh()->GetRelativeLocation();
+
+	UE_LOG(LogTemp, Warning, TEXT("Original Location: %s"), *OriginalLocation.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("New Location: %s"), *NewLocation.ToString());
 	
 	// Default control to this player
 	AutoPossessPlayer = EAutoReceiveInput::Player0;

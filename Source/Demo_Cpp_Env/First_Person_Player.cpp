@@ -5,6 +5,7 @@
 #include "EnhancedInputComponent.h"
 #include "InputAction.h"
 #include "Components/ArrowComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Math/Vector2D.h"
 
@@ -41,14 +42,6 @@ AFirst_Person_Player::AFirst_Person_Player()
 
 	// CameraRightShoulderLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Camera Right Shoulder"));
 	// CameraRightShoulderLocation->SetupAttachment(GetMesh());
-
-	// Offset character to the left
-	FVector OriginalLocation = GetMesh()->GetRelativeLocation();
-	GetMesh()->SetRelativeLocation(FVector(0.0f, -200.0f, 0.0f)); // Adjust the values as needed
-	FVector NewLocation = GetMesh()->GetRelativeLocation();
-
-	UE_LOG(LogTemp, Warning, TEXT("Original Location: %s"), *OriginalLocation.ToString());
-	UE_LOG(LogTemp, Warning, TEXT("New Location: %s"), *NewLocation.ToString());
 	
 	// Default control to this player
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
@@ -108,13 +101,39 @@ void AFirst_Person_Player::HandleMovement(const FInputActionInstance& Instance)
 		*	once dot product == 1, the above will be called instead
 		*  }
 	 */
+
+	
+	
 	const FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
 
 	if (Controller != nullptr)
 	{
-		AddMovementInput(GetActorForwardVector() * AxisValue2D.Y);
-		AddMovementInput(GetActorRightVector() * AxisValue2D.X);
+		const FVector CameraForward = CameraComp->GetForwardVector();
+		const FVector CharacterForward = GetActorForwardVector();
 
+		const float DotProduct = FVector::DotProduct(CameraForward, CharacterForward);
+
+		// Log the values
+		UE_LOG(LogTemp, Warning, TEXT("Camera Forward Vector: %s"), *CameraForward.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("Character Forward Vector: %s"), *CharacterForward.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("Dot Product: %f"), DotProduct);
+
+		if (FMath::IsNearlyEqual(DotProduct, 1.0f, 0.1f))
+		{
+			// Camera & Forward vector are parallel, strafe
+			AddMovementInput(GetActorForwardVector() * AxisValue2D.Y);
+			AddMovementInput(GetActorRightVector() * AxisValue2D.X);
+		} else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Rotate Character"));
+			const FRotator NewRotation = FRotationMatrix::MakeFromX(CameraForward).Rotator();
+			//SetActorRotation(NewRotation);
+			GetCapsuleComponent()->AddLocalRotation(NewRotation);
+		}
+		
+		
+
+		
 	}
 }
 

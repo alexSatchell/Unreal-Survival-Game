@@ -12,7 +12,7 @@
 // Sets default values
 AFirst_Person_Player::AFirst_Person_Player()
 {
-	// PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true;
 	// Do not rotate when controller rotates. Only rotate camera. (Free Camera)
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
@@ -34,15 +34,12 @@ AFirst_Person_Player::AFirst_Person_Player()
      * NOTES Camera 2.0
      * Camera Needs to be aligned to center
      */
-	
+
 	// Create & attach camera
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComp->SetupAttachment(SpringArmComp, USpringArmComponent::SocketName);
 	CameraComp->bUsePawnControlRotation = false; // Play with this field
 
-	// CameraRightShoulderLocation = CreateDefaultSubobject<UArrowComponent>(TEXT("Camera Right Shoulder"));
-	// CameraRightShoulderLocation->SetupAttachment(GetMesh());
-	
 	// Default control to this player
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
@@ -54,7 +51,8 @@ void AFirst_Person_Player::BeginPlay()
 	// Add Input Mapping Context
 	if (const APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<
+			UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
@@ -64,6 +62,13 @@ void AFirst_Person_Player::BeginPlay()
 void AFirst_Person_Player::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	const FVector StartLocation = GetActorLocation();
+	const FVector ForwardVector = GetActorForwardVector();
+	constexpr float LineLength = 100.0f;
+	const FVector EndLocation = StartLocation + ForwardVector * LineLength;
+	
+	DrawDebugLine(GetWorld(),StartLocation, EndLocation, FColor::Red, false, -1, 0, 5);
 }
 
 void AFirst_Person_Player::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -72,12 +77,16 @@ void AFirst_Person_Player::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleMovement);
-    	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFirst_Person_Player::HandleJump);
-    	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleLook);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleFire);
+		EnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this,
+		                                   &AFirst_Person_Player::HandleMovement);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AFirst_Person_Player::HandleJump);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this,
+		                                   &AFirst_Person_Player::HandleLook);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this,
+		                                   &AFirst_Person_Player::HandleFire);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleAim);
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AFirst_Person_Player::HandleSprint);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this,
+		                                   &AFirst_Person_Player::HandleSprint);
 	}
 }
 
@@ -102,8 +111,6 @@ void AFirst_Person_Player::HandleMovement(const FInputActionInstance& Instance)
 		*  }
 	 */
 
-	
-	
 	const FVector2D AxisValue2D = Instance.GetValue().Get<FVector2D>();
 
 	if (Controller != nullptr)
@@ -111,8 +118,14 @@ void AFirst_Person_Player::HandleMovement(const FInputActionInstance& Instance)
 		const FVector CameraForward = CameraComp->GetForwardVector();
 		const FVector CharacterForward = GetActorForwardVector();
 
+		const FVector StartLocation = CameraComp->GetComponentLocation(); 
+		const FVector ForwardVector = CameraForward;
+		constexpr float LineLength = 500.0f;
+		const FVector EndLocation = StartLocation + ForwardVector * LineLength;
+        	
+		DrawDebugLine(GetWorld(),StartLocation, EndLocation, FColor::Blue, false, 2, 0, 5);
+		
 		const float DotProduct = FVector::DotProduct(CameraForward, CharacterForward);
-
 		// Log the values
 		UE_LOG(LogTemp, Warning, TEXT("Camera Forward Vector: %s"), *CameraForward.ToString());
 		UE_LOG(LogTemp, Warning, TEXT("Character Forward Vector: %s"), *CharacterForward.ToString());
@@ -121,19 +134,20 @@ void AFirst_Person_Player::HandleMovement(const FInputActionInstance& Instance)
 		if (FMath::IsNearlyEqual(DotProduct, 1.0f, 0.1f))
 		{
 			// Camera & Forward vector are parallel, strafe
-			AddMovementInput(GetActorForwardVector() * AxisValue2D.Y);
-			AddMovementInput(GetActorRightVector() * AxisValue2D.X);
-		} else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Rotate Character"));
-			const FRotator NewRotation = FRotationMatrix::MakeFromX(CameraForward).Rotator();
-			//SetActorRotation(NewRotation);
-			GetCapsuleComponent()->AddLocalRotation(NewRotation);
+			//AddMovementInput(GetActorForwardVector() * AxisValue2D.Y);
+			//AddMovementInput(GetActorRightVector() * AxisValue2Ds.X);
+			UE_LOG(LogTemp, Warning, TEXT("Strafe"));
 		}
-		
-		
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Rotate & Strafe"));
+			// Calculate the desired rotation to align the character with the camera's forward direction
+			FRotator NewRotation = (CameraForward - FVector(0.0f, 0.0f, CameraForward.Z)).Rotation();
+			NewRotation.Roll = GetActorRotation().Roll; // Keep the roll unchanged
 
-		
+			// Set the character's rotation to match the camera's forward direction
+			GetCapsuleComponent()->SetWorldRotation(NewRotation);
+		}
 	}
 }
 
@@ -153,12 +167,12 @@ void AFirst_Person_Player::HandleLook(const FInputActionInstance& Instance)
 		 *		Set character forward vector/rotation = to camera forward vector/rotation
 		 *	}
 	 */
-	
+
 	const FVector2d AxisValue2D = Instance.GetValue().Get<FVector2d>();
 
 	if (SpringArmComp)
 	{
-		FRotator NewSpringArmRotation =SpringArmComp->GetComponentRotation();
+		FRotator NewSpringArmRotation = SpringArmComp->GetComponentRotation();
 		NewSpringArmRotation.Yaw += AxisValue2D.X;
 		NewSpringArmRotation.Pitch += AxisValue2D.Y;
 
@@ -167,13 +181,15 @@ void AFirst_Person_Player::HandleLook(const FInputActionInstance& Instance)
 
 		// Update the spring arm rotation
 		SpringArmComp->SetWorldRotation(NewSpringArmRotation);
-		
+
 		// If moving - rotate the player as well
 		if (GetCharacterMovement()->Velocity.SizeSquared() > 0.01f)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Player Moving"));
+			// Character will face direction of travel? Defined by the controller rotation?
 			//GetCharacterMovement()->bOrientRotationToMovement = true;
-			GetCharacterMovement()->bUseControllerDesiredRotation = true;
+			// Character will orient to direction of controller rotation, direction of camera?
+			// GetCharacterMovement()->bUseControllerDesiredRotation = true;
 		}
 	}
 }
@@ -253,4 +269,4 @@ void AFirst_Person_Player::HandleJump(const FInputActionValue& value)
 	}
 }
 
-#pragma endregion 
+#pragma endregion

@@ -32,6 +32,9 @@ class DEMO_CPP_ENV_API ACustomPlayerController : public APlayerController
 #pragma endregion
 
 protected:
+	virtual void BeginPlay();
 
 	void HandleShowMenu(const FInputActionInstance& Instance);
+
+	virtual void SetupInputComponent() override;
 };

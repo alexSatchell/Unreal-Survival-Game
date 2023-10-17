@@ -26,7 +26,7 @@ class DEMO_CPP_ENV_API AFirst_Person_Player : public ACharacter
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions",
 		meta=(AllowPrivateAccess = "true"))
-	int32 BaseMappingPriority = 0;
+	int32 BaseMappingPriority = 1;
 
 	// INPUT ACTIONS
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions",

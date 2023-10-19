@@ -13,27 +13,22 @@
 AFirst_Person_Player::AFirst_Person_Player()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	
 	// Do not rotate when controller rotates. Only rotate camera. (Free Camera)
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 	bUseControllerRotationYaw = false;
 
-	// Play with this field
 	GetCharacterMovement()->bOrientRotationToMovement = false; // Strafe motion. Player will not rotate
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 100.0f, 0.0f);
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
 	// Create & attach spring arm
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	SpringArmComp->SetupAttachment(GetRootComponent());
 	SpringArmComp->TargetArmLength = 150.0f;
 	SpringArmComp->bEnableCameraLag = false;
-	SpringArmComp->CameraLagSpeed = 3.0f;
-	SpringArmComp->bUsePawnControlRotation = true; // Use input (Mouse.X) to rotate the camera
-
-	/*
-     * NOTES Camera 2.0
-     * Camera Needs to be aligned to center
-     */
+	SpringArmComp->CameraLagSpeed = 0.0f;
+	SpringArmComp->bUsePawnControlRotation = true; // Rotate arm based on controller 
 
 	// Create & attach camera
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -115,38 +110,38 @@ void AFirst_Person_Player::HandleMovement(const FInputActionInstance& Instance)
 
 	if (Controller != nullptr)
 	{
+		// Find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+ 
+		// Get forward vector
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+	
+		// Get right vector 
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		// Get dot product
 		const FVector CameraForward = CameraComp->GetForwardVector();
 		const FVector CharacterForward = GetActorForwardVector();
-
-		const FVector StartLocation = CameraComp->GetComponentLocation(); 
-		const FVector ForwardVector = CameraForward;
-		constexpr float LineLength = 500.0f;
-		const FVector EndLocation = StartLocation + ForwardVector * LineLength;
-        	
-		DrawDebugLine(GetWorld(),StartLocation, EndLocation, FColor::Blue, false, 2, 0, 5);
-		
 		const float DotProduct = FVector::DotProduct(CameraForward, CharacterForward);
-		// Log the values
-		UE_LOG(LogTemp, Warning, TEXT("Camera Forward Vector: %s"), *CameraForward.ToString());
-		UE_LOG(LogTemp, Warning, TEXT("Character Forward Vector: %s"), *CharacterForward.ToString());
-		UE_LOG(LogTemp, Warning, TEXT("Dot Product: %f"), DotProduct);
-
+		
 		if (FMath::IsNearlyEqual(DotProduct, 1.0f, 0.1f))
 		{
 			// Camera & Forward vector are parallel, strafe
-			//AddMovementInput(GetActorForwardVector() * AxisValue2D.Y);
-			//AddMovementInput(GetActorRightVector() * AxisValue2Ds.X);
+			AddMovementInput(ForwardDirection, AxisValue2D.Y);
+			AddMovementInput(RightDirection, AxisValue2D.X);
 			UE_LOG(LogTemp, Warning, TEXT("Strafe"));
 		}
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Rotate & Strafe"));
-			// Calculate the desired rotation to align the character with the camera's forward direction
-			FRotator NewRotation = (CameraForward - FVector(0.0f, 0.0f, CameraForward.Z)).Rotation();
-			NewRotation.Roll = GetActorRotation().Roll; // Keep the roll unchanged
-
-			// Set the character's rotation to match the camera's forward direction
-			GetCapsuleComponent()->SetWorldRotation(NewRotation);
+			
+			GetCharacterMovement()->bUseControllerDesiredRotation= true; // Character moves in the direction of input...
+			GetCharacterMovement()->bOrientRotationToMovement = true;// Camera & forward vector are not parallel
+			
+			// Calculate a new rotation for the character
+			AddMovementInput(ForwardDirection, AxisValue2D.Y);
+			AddMovementInput(RightDirection, AxisValue2D.X);
 		}
 	}
 }
@@ -169,29 +164,36 @@ void AFirst_Person_Player::HandleLook(const FInputActionInstance& Instance)
 	 */
 
 	const FVector2d AxisValue2D = Instance.GetValue().Get<FVector2d>();
-
-	if (SpringArmComp)
+	if (Controller != nullptr)
 	{
-		FRotator NewSpringArmRotation = SpringArmComp->GetComponentRotation();
-		NewSpringArmRotation.Yaw += AxisValue2D.X;
-		NewSpringArmRotation.Pitch += AxisValue2D.Y;
-
-		// Limit pitch rotation
-		NewSpringArmRotation.Pitch = FMath::ClampAngle(NewSpringArmRotation.Pitch, -35.0f, 60.0f);
-
-		// Update the spring arm rotation
-		SpringArmComp->SetWorldRotation(NewSpringArmRotation);
-
-		// If moving - rotate the player as well
-		if (GetCharacterMovement()->Velocity.SizeSquared() > 0.01f)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Player Moving"));
-			// Character will face direction of travel? Defined by the controller rotation?
-			//GetCharacterMovement()->bOrientRotationToMovement = true;
-			// Character will orient to direction of controller rotation, direction of camera?
-			// GetCharacterMovement()->bUseControllerDesiredRotation = true;
-		}
+		AddControllerYawInput(AxisValue2D.X);
+    	AddControllerPitchInput(AxisValue2D.Y);
+    
+    	UE_LOG(LogTemp, Warning, TEXT("Player Looking"));	
 	}
+
+	
+	// if (SpringArmComp)
+	// {
+	// 	FRotator NewSpringArmRotation = SpringArmComp->GetComponentRotation();
+	// 	NewSpringArmRotation.Yaw += AxisValue2D.X;
+	// 	NewSpringArmRotation.Pitch += AxisValue2D.Y;
+
+	// 	// Limit pitch rotation
+	// 	NewSpringArmRotation.Pitch = FMath::ClampAngle(NewSpringArmRotation.Pitch, -35.0f, 60.0f);
+
+	// 	// Update the spring arm rotation
+	// 	SpringArmComp->SetWorldRotation(NewSpringArmRotation);
+	// 	// add yaw and pitch input to controlle
+	// 	AddControllerYawInput(AxisValue2D.X);
+	// 	AddControllerPitchInput(AxisValue2D.Y);
+
+	// 	// If moving - rotate the player as well
+	// 	if (GetCharacterMovement()->Velocity.SizeSquared() > 0.01f)
+	// 	{
+	// 		UE_LOG(LogTemp, Warning, TEXT("Player Moving"));
+	// 	}
+	// }
 }
 
 void AFirst_Person_Player::HandleSprint(const FInputActionValue& value)
@@ -215,7 +217,7 @@ void AFirst_Person_Player::HandleAim(const FInputActionValue& value)
 	UE_LOG(LogTemp, Warning, TEXT("Aim"));
 }
 
-void AFirst_Person_Player::HandleFire(const FInputActionValue& value)
+void AFirst_Person_Player::HandleFire(const FInputActionValue& value) 
 {
 	/*
 		 * NOTES Handle Shoot 

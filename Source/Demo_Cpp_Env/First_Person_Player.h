@@ -20,36 +20,36 @@ class DEMO_CPP_ENV_API AFirst_Person_Player : public ACharacter
 #pragma region INPUT
 
 	// INPUT MAPPING CONTEXT
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Mapping Context",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Controls|Input Mapping Context",
 		meta=(AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Controls|Input Actions",
 		meta=(AllowPrivateAccess = "true"))
 	int32 BaseMappingPriority = 1;
 
 	// INPUT ACTIONS
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Controls|Input Actions",
 		meta=(AllowPrivateAccess = "true"))
 	UInputAction* MovementAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Controls|Input Actions",
 		meta=(AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Controls|Input Actions",
 		meta=(AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Controls|Input Actions",
 		meta=(AllowPrivateAccess = "true"))
 	UInputAction* FireAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Controls|Input Actions",
 		meta=(AllowPrivateAccess = "true"))
 	UInputAction* AimAction;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Controls|Input Actions",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Controls|Input Actions",
 		meta=(AllowPrivateAccess = "true"))
 	UInputAction* SprintAction;
 
@@ -65,10 +65,10 @@ protected:
 
 #pragma region CAMERA
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Camera|Spring Arm")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	class USpringArmComponent* SpringArmComp;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Camera|Camera")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	class UCameraComponent* CameraComp;
 
 	// UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -98,4 +98,9 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return SpringArmComp; }
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return CameraComp; }
 };
